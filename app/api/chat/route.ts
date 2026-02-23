@@ -1,0 +1,142 @@
+import { NextRequest, NextResponse } from "next/server";
+import Groq from "groq-sdk";
+import { retrieve } from "@/lib/rag";
+
+const systemPrompt = `
+You are the Zydus Industrial Intelligence Assistant.
+
+You are an AI system designed specifically to support engineers at Zydus Life Sciences in monitoring and troubleshooting industrial vacuum pumps used in pharmaceutical manufacturing environments.
+
+Your responsibilities:
+
+1. Provide clear, structured, and technically accurate responses.
+2. Focus on vacuum pump performance monitoring, fault diagnosis, and maintenance guidance.
+3. Use professional engineering language suitable for plant engineers.
+4. Prioritize safety, compliance, and operational reliability.
+5. Avoid speculation. If insufficient data is provided, ask for relevant parameters.
+
+Relevant Monitoring Parameters:
+- Current vacuum value achieved
+- Setpoint vacuum value
+- Power load
+- Running hours
+- Time taken to reach setpoint
+- Oil level condition
+
+Common Vacuum Pump Issues:
+- Not achieving vacuum set point
+- Pump overheating or overload
+- Pump not running
+- Excessive power consumption
+- Oil contamination or low oil level
+
+When diagnosing:
+- Suggest possible root causes
+- Suggest inspection steps
+- Suggest corrective actions
+- Keep answers structured using bullet points when appropriate
+- Avoid unnecessary verbosity
+
+Do NOT provide medical advice.
+Do NOT answer unrelated general knowledge questions.
+If the question is outside vacuum pump monitoring or industrial equipment, respond that the system is restricted to industrial vacuum pump diagnostics.
+
+Maintain a professional and concise tone at all times.
+
+Format responses using proper Markdown with headings and bullet lists.
+
+Respond using structured Markdown. Use the following structure when applicable:
+
+### Possible Causes
+- Cause 1
+- Cause 2
+
+### Recommended Inspection Steps
+- Step 1
+- Step 2
+
+### Corrective Actions
+- Action 1
+- Action 2
+
+Do not use asterisk-based bullet formatting. Use dashes (-) for bullets.
+`;
+
+export async function POST(req: NextRequest) {
+    try {
+        const { message, history } = await req.json();
+
+        if (!message) {
+            return NextResponse.json(
+                { error: "Message is required" },
+                { status: 400 }
+            );
+        }
+
+        const apiKey = process.env.GROQ_API_KEY;
+        if (!apiKey) {
+            console.error("GROQ_API_KEY is not defined in environment variables");
+            return NextResponse.json(
+                { error: "API key configuration error" },
+                { status: 500 }
+            );
+        }
+
+        const groq = new Groq({ apiKey });
+
+        // Retrieve relevant knowledge using RAG
+        const retrievedContext = retrieve(message, 2);
+        const ragContext = retrievedContext.length > 0
+            ? `\n\nRelevant Knowledge from Database:\n${retrievedContext.join("\n\n")}`
+            : "";
+
+        // Build messages array for Groq (OpenAI-compatible format)
+        const messages: Groq.Chat.ChatCompletionMessageParam[] = [
+            { role: "system", content: systemPrompt + ragContext },
+        ];
+
+        // Add conversation history
+        if (history && Array.isArray(history)) {
+            for (const msg of history) {
+                messages.push({
+                    role: msg.role === "user" ? "user" : "assistant",
+                    content: msg.content,
+                });
+            }
+        }
+
+        // Add current user message
+        messages.push({ role: "user", content: message });
+
+        // 10-second timeout safeguard
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10_000);
+
+        try {
+            const chatCompletion = await groq.chat.completions.create(
+                {
+                    messages,
+                    model: "llama-3.3-70b-versatile",
+                    temperature: 0.3,
+                    max_tokens: 600,
+                    top_p: 0.9,
+                },
+                { signal: controller.signal }
+            );
+
+            clearTimeout(timeout);
+
+            const reply = chatCompletion.choices[0]?.message?.content || "No response generated.";
+            return NextResponse.json({ reply });
+        } catch (innerError) {
+            clearTimeout(timeout);
+            throw innerError;
+        }
+    } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        console.error("Groq API Error:", errMsg);
+
+        const FALLBACK = "The AI diagnostic engine is temporarily unavailable. Please retry.";
+        return NextResponse.json({ reply: FALLBACK });
+    }
+}

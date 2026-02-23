@@ -1,0 +1,144 @@
+[
+    {
+        "issue": "Not achieving vacuum set point",
+        "causes": [
+            "Leak in pipeline or vessel",
+            "Clogged suction filter or inlet screen",
+            "Low oil level in rotary vane pump",
+            "Oil contamination reducing sealing efficiency",
+            "Worn vanes or rotor",
+            "Faulty or leaking gaskets and O-rings",
+            "Incorrect pump sizing for application"
+        ],
+        "actions": [
+            "Perform leak detection using ultrasonic detector or soap bubble test",
+            "Inspect and clean or replace suction filters",
+            "Check and top up oil to recommended level",
+            "Drain contaminated oil and replace with manufacturer-recommended grade",
+            "Inspect vanes for wear and replace if clearance exceeds tolerance",
+            "Replace worn gaskets and O-rings",
+            "Verify pump capacity matches process demand"
+        ]
+    },
+    {
+        "issue": "Pump overheating",
+        "causes": [
+            "Bearing failure or excessive wear",
+            "Mechanical misalignment of coupling or shaft",
+            "Electrical overload due to high current draw",
+            "Insufficient cooling water flow",
+            "Blocked cooling fins or heat exchanger",
+            "Operating beyond rated duty cycle"
+        ],
+        "actions": [
+            "Inspect bearings for wear, noise, or play and replace if needed",
+            "Check and correct shaft alignment using dial indicator",
+            "Verify motor current draw against nameplate rating",
+            "Check cooling water inlet temperature and flow rate",
+            "Clean cooling fins and heat exchanger passages",
+            "Review duty cycle and reduce continuous operation time if needed"
+        ]
+    },
+    {
+        "issue": "Pump not running or failing to start",
+        "causes": [
+            "Electrical supply failure or tripped breaker",
+            "Motor winding fault or burnt coil",
+            "Seized rotor due to corrosion or foreign object",
+            "Faulty contactor or relay",
+            "Thermal overload relay tripped",
+            "Control circuit interlock not satisfied"
+        ],
+        "actions": [
+            "Verify incoming power supply and check breaker status",
+            "Test motor winding resistance using megger",
+            "Attempt manual rotation of shaft to check for seizure",
+            "Inspect contactor and relay for pitting or welding",
+            "Reset thermal overload relay and investigate cause",
+            "Check all interlocks and safety circuits in control panel"
+        ]
+    },
+    {
+        "issue": "Excessive power consumption",
+        "causes": [
+            "Mechanical drag from worn bearings or misalignment",
+            "Oil viscosity too high for operating temperature",
+            "Process gas load exceeding pump design capacity",
+            "Internal component wear increasing friction",
+            "Voltage imbalance in three-phase supply"
+        ],
+        "actions": [
+            "Inspect bearings and coupling alignment",
+            "Verify oil grade matches manufacturer specification for ambient temperature",
+            "Measure gas throughput and compare with pump rating",
+            "Perform internal inspection for wear on vanes, rotor, and stator",
+            "Measure and balance three-phase voltage at motor terminals"
+        ]
+    },
+    {
+        "issue": "Oil contamination or low oil level",
+        "causes": [
+            "Process gas condensation in oil reservoir",
+            "Seal failure allowing moisture ingress",
+            "Extended operation without oil change",
+            "Oil drain plug or sight glass leaking",
+            "Wrong oil grade or mixing incompatible oils"
+        ],
+        "actions": [
+            "Install or verify gas ballast valve operation to reduce condensation",
+            "Inspect shaft seals and replace if damaged",
+            "Follow manufacturer oil change intervals strictly",
+            "Check drain plug torque and sight glass gasket condition",
+            "Drain system completely and refill with correct manufacturer-specified oil"
+        ]
+    },
+    {
+        "issue": "Abnormal noise or vibration during operation",
+        "causes": [
+            "Loose mounting bolts or foundation issues",
+            "Worn or damaged bearings",
+            "Cavitation due to inlet restriction",
+            "Foreign object inside pump chamber",
+            "Coupling wear or misalignment"
+        ],
+        "actions": [
+            "Tighten all mounting bolts and inspect foundation for cracks",
+            "Replace worn bearings using manufacturer-specified replacements",
+            "Check inlet piping for restrictions or blockages",
+            "Disassemble pump and inspect chamber for debris",
+            "Inspect coupling and realign as per manufacturer tolerances"
+        ]
+    },
+    {
+        "issue": "Vacuum pump takes too long to reach setpoint",
+        "causes": [
+            "Small leak in piping or vessel",
+            "Partially blocked inlet filter",
+            "Degraded pump performance due to wear",
+            "Oversized vessel for pump capacity",
+            "Gas ballast valve open unnecessarily"
+        ],
+        "actions": [
+            "Perform comprehensive leak test on entire vacuum circuit",
+            "Clean or replace inlet filter element",
+            "Compare current evacuation time against commissioning baseline",
+            "Evaluate whether additional pump capacity is required",
+            "Close gas ballast valve if condensation is not an issue"
+        ]
+    },
+    {
+        "issue": "Oil mist or fumes from exhaust",
+        "causes": [
+            "Worn or saturated oil mist filter",
+            "Overfilled oil reservoir",
+            "Oil degradation due to high operating temperature",
+            "Exhaust filter housing cracked or gasket damaged"
+        ],
+        "actions": [
+            "Replace oil mist filter element",
+            "Drain oil to correct level as per sight glass marking",
+            "Check operating temperature and investigate root cause of overheating",
+            "Inspect exhaust filter housing and replace gasket if needed"
+        ]
+    }
+]
