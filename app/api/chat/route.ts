@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { retrieve } from "@/lib/rag";
 
+// Force Node.js runtime — prevents Edge runtime issues with SDKs
+export const runtime = "nodejs";
+
+const FALLBACK = "The AI diagnostic engine is temporarily unavailable. Please retry.";
+
 const systemPrompt = `
 You are the Zydus Industrial Intelligence Assistant.
 
@@ -64,41 +69,44 @@ Do not use asterisk-based bullet formatting. Use dashes (-) for bullets.
 
 export async function POST(req: NextRequest) {
     try {
-        const { message, history } = await req.json();
+        const body = await req.json();
+        const message = body?.message;
+        const history = body?.history;
+
+        console.log("── /api/chat hit ──");
+        console.log("Incoming message:", message);
 
         if (!message) {
-            return NextResponse.json(
-                { error: "Message is required" },
-                { status: 400 }
-            );
+            console.warn("No message in request body");
+            return NextResponse.json({ reply: FALLBACK });
         }
 
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
             console.error("GROQ_API_KEY is not defined in environment variables");
-            return NextResponse.json(
-                { error: "API key configuration error" },
-                { status: 500 }
-            );
+            return NextResponse.json({ reply: FALLBACK });
         }
 
-        const groq = new Groq({ apiKey });
-
         // Retrieve relevant knowledge using RAG
-        const retrievedContext = retrieve(message, 2);
-        const ragContext = retrievedContext.length > 0
-            ? `\n\nRelevant Knowledge from Database:\n${retrievedContext.join("\n\n")}`
-            : "";
+        let ragContext = "";
+        try {
+            const retrievedContext = retrieve(message, 2);
+            if (retrievedContext.length > 0) {
+                ragContext = `\n\nRelevant Knowledge from Database:\n${retrievedContext.join("\n\n")}`;
+            }
+        } catch (ragError) {
+            console.warn("RAG retrieval failed, proceeding without context:", ragError);
+        }
 
         // Build messages array for Groq (OpenAI-compatible format)
-        const messages: Groq.Chat.ChatCompletionMessageParam[] = [
+        const chatMessages: Groq.Chat.ChatCompletionMessageParam[] = [
             { role: "system", content: systemPrompt + ragContext },
         ];
 
         // Add conversation history
         if (history && Array.isArray(history)) {
             for (const msg of history) {
-                messages.push({
+                chatMessages.push({
                     role: msg.role === "user" ? "user" : "assistant",
                     content: msg.content,
                 });
@@ -106,37 +114,34 @@ export async function POST(req: NextRequest) {
         }
 
         // Add current user message
-        messages.push({ role: "user", content: message });
+        chatMessages.push({ role: "user", content: message });
+
+        const groq = new Groq({ apiKey });
 
         // 10-second timeout safeguard
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10_000);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Groq request timed out after 10s")), 10_000)
+        );
 
-        try {
-            const chatCompletion = await groq.chat.completions.create(
-                {
-                    messages,
-                    model: "llama-3.3-70b-versatile",
-                    temperature: 0.3,
-                    max_tokens: 600,
-                    top_p: 0.9,
-                },
-                { signal: controller.signal }
-            );
+        const groqPromise = groq.chat.completions.create({
+            messages: chatMessages,
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.3,
+            max_tokens: 600,
+            top_p: 0.9,
+        });
 
-            clearTimeout(timeout);
+        const chatCompletion = await Promise.race([groqPromise, timeoutPromise]);
 
-            const reply = chatCompletion.choices[0]?.message?.content || "No response generated.";
-            return NextResponse.json({ reply });
-        } catch (innerError) {
-            clearTimeout(timeout);
-            throw innerError;
-        }
+        const reply = chatCompletion.choices[0]?.message?.content || "No response generated.";
+        console.log("Groq response received, length:", reply.length);
+
+        return NextResponse.json({ reply });
     } catch (error) {
         const errMsg = error instanceof Error ? error.message : String(error);
         console.error("Groq API Error:", errMsg);
 
-        const FALLBACK = "The AI diagnostic engine is temporarily unavailable. Please retry.";
+        // Always return 200 with reply so frontend never sees a fetch failure
         return NextResponse.json({ reply: FALLBACK });
     }
 }

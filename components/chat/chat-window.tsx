@@ -20,11 +20,9 @@ export function ChatWindow() {
 
         // Add user message to state
         const userMessage: Message = { role: "user", content: value };
-        const newMessages = [...messages, userMessage];
-        setMessages(newMessages);
+        setMessages((prev) => [...prev, userMessage]);
 
         try {
-            // Fetch response from our Gemini API route
             const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: {
@@ -32,18 +30,16 @@ export function ChatWindow() {
                 },
                 body: JSON.stringify({
                     message: value,
-                    history: messages, // Send existing history
+                    history: messages,
                 }),
             });
 
             if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                throw new Error(errData.detail || errData.error || `HTTP ${response.status}`);
+                throw new Error(`API response not OK: ${response.status}`);
             }
 
             const data = await response.json();
 
-            // Add assistant response to state
             setMessages((prev) => [
                 ...prev,
                 { role: "assistant", content: data.reply },
@@ -55,7 +51,7 @@ export function ChatWindow() {
                 ...prev,
                 {
                     role: "assistant",
-                    content: `⚠️ Error: ${msg}`
+                    content: "The AI diagnostic engine is temporarily unavailable. Please retry.",
                 },
             ]);
         }
