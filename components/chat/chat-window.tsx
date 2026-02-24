@@ -18,7 +18,6 @@ export function ChatWindow() {
             setHasStarted(true);
         }
 
-        // Add user message to state
         const userMessage: Message = { role: "user", content: value };
         setMessages((prev) => [...prev, userMessage]);
 
@@ -60,14 +59,15 @@ export function ChatWindow() {
     // ── Stage 1: Hero ──────────────────────────────────────────────
     if (!hasStarted) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
-                <h1 className="text-5xl md:text-6xl font-normal tracking-tight text-black leading-tight">
-                    <span className="text-purple-700">Zydus</span> Industrial <span className="text-green-900">Intelligence</span>
+            <div className="w-full h-[100dvh] flex flex-col items-center justify-center px-4 text-center">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-normal tracking-tight text-black leading-tight">
+                    <span className="text-purple-700">Zydus</span> Industrial{" "}
+                    <span className="text-green-900">Intelligence</span>
                 </h1>
-                <p className="mt-4 text-lg text-black/60">
+                <p className="mt-3 sm:mt-4 text-sm sm:text-lg text-black/60">
                     AI-powered vacuum pump monitoring assistant
                 </p>
-                <div className="mt-8 w-full max-w-xl">
+                <div className="mt-6 sm:mt-8 w-full max-w-xl">
                     <AIInputWithLoading
                         onSubmit={handleSubmit}
                         placeholder="Describe the vacuum pump issue..."
@@ -79,23 +79,22 @@ export function ChatWindow() {
 
     // ── Stage 2: Chat ──────────────────────────────────────────────
     return (
-        <div className="min-h-screen flex items-start justify-center px-4 py-6">
-            <div
-                className="font-sans bg-white rounded-3xl shadow-lg p-8 flex flex-col gap-6"
-                style={{ width: '40vw', maxWidth: '40vw', minHeight: 'calc(100vh - 6rem)' }}
-            >
+        <div className="w-full h-[100dvh] flex flex-col">
+            <div className="font-sans bg-white rounded-none sm:rounded-3xl shadow-none sm:shadow-lg w-full max-w-2xl mx-auto flex-1 flex flex-col overflow-hidden">
                 {/* Message list — grows to fill space, scrolls when full */}
-                <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-1">
+                <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 flex flex-col gap-4">
                     {messages.map((msg, i) => (
                         <MessageBubble key={i} role={msg.role} content={msg.content} />
                     ))}
                 </div>
 
-                {/* Input bar pinned to bottom of the white box */}
-                <AIInputWithLoading
-                    onSubmit={handleSubmit}
-                    placeholder="Ask about vacuum pump performance..."
-                />
+                {/* Input bar pinned to bottom */}
+                <div className="px-3 sm:px-6 pb-3 sm:pb-6 pt-2">
+                    <AIInputWithLoading
+                        onSubmit={handleSubmit}
+                        placeholder="Ask about vacuum pump performance..."
+                    />
+                </div>
             </div>
         </div>
     );

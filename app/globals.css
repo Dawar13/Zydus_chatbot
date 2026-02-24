@@ -8,6 +8,11 @@
   }
 }
 
+html,
+body {
+  overflow-x: hidden;
+}
+
 body {
   background-color: #f8f9fb;
   background-image:

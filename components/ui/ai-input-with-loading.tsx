@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { ArrowUp, Loader2 } from "lucide-react";
 import { useAutoResizeTextarea } from "@/components/hooks/use-auto-resize-textarea";
 
@@ -16,7 +16,7 @@ export function AIInputWithLoading({
     const [value, setValue] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const { textareaRef, adjustHeight } = useAutoResizeTextarea({
-        minHeight: 56,
+        minHeight: 48,
         maxHeight: 200,
     });
 
@@ -59,19 +59,19 @@ export function AIInputWithLoading({
                 disabled={isLoading}
                 rows={1}
                 className={[
-                    "w-full resize-none bg-transparent px-4 py-4 pr-14 text-sm font-sans text-black",
+                    "w-full resize-none bg-transparent px-3 sm:px-4 py-3 sm:py-4 pr-12 sm:pr-14 text-sm sm:text-base font-sans text-black",
                     "placeholder:text-black/40 outline-none rounded-2xl",
                     "disabled:opacity-60 disabled:cursor-not-allowed",
                     "transition-all duration-200",
                 ].join(" ")}
-                style={{ minHeight: 56 }}
+                style={{ minHeight: 48 }}
             />
 
             <button
                 onClick={handleSubmit}
                 disabled={!value.trim() || isLoading}
                 className={[
-                    "absolute right-3 bottom-3 flex items-center justify-center",
+                    "absolute right-2 sm:right-3 bottom-2 sm:bottom-3 flex items-center justify-center",
                     "w-8 h-8 rounded-full transition-all duration-200",
                     value.trim() && !isLoading
                         ? "bg-black text-white hover:bg-black/80 scale-100"
