@@ -56,6 +56,11 @@ export function ChatWindow() {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, showOptions]);
 
+    // Automatically start the chat on mount to show options on first visit
+    useEffect(() => {
+        handleInitialLoad();
+    }, []);
+
     const callApi = async (value: string, currentHistory: Message[]) => {
         try {
             const response = await fetch("/api/chat", {
@@ -169,16 +174,6 @@ export function ChatWindow() {
 
     // ── Stage 1: Hero ──────────────────────────────────────────────
     if (!hasStarted) {
-        // Automatically start the chat on mount if requirement "at initial load" is dominant
-        // but we'll keep the hero design available. If you want it to skip hero, call handleInitialLoad() in a useEffect.
-        // For now, let's keep the hero but add an explicit start or just rely on typing.
-        // Wait, "at initial load" usually means skipping Hero. Lets keep explicit so UI design survives, but we use handleInitialLoad for "first visit" logic
-        useEffect(() => {
-            // We can optionally trigger it here if truly bypassing hero.
-            // As per instructions, "On first visit... The assistant should respond with: Welcome..."
-            handleInitialLoad();
-        }, []);
-
         return (
             <div className="w-full h-[100dvh] flex flex-col items-center justify-center px-4 text-center">
                 <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-normal tracking-tight text-black leading-tight">
