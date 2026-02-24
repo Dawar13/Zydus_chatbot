@@ -79,8 +79,8 @@ export function ChatWindow() {
 
     // ── Stage 2: Chat ──────────────────────────────────────────────
     return (
-        <div className="w-full h-[100dvh] flex flex-col">
-            <div className="font-sans bg-white rounded-none sm:rounded-3xl shadow-none sm:shadow-lg w-full max-w-2xl mx-auto flex-1 flex flex-col overflow-hidden">
+        <div className="w-full h-[100dvh] flex flex-col items-center justify-center py-3 sm:py-6">
+            <div className="font-sans bg-white rounded-2xl sm:rounded-3xl shadow-md sm:shadow-lg w-full max-w-2xl mx-auto flex flex-col overflow-hidden" style={{ maxHeight: 'calc(100dvh - 1.5rem)', height: '92dvh' }}>
                 {/* Message list — grows to fill space, scrolls when full */}
                 <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 flex flex-col gap-4">
                     {messages.map((msg, i) => (
