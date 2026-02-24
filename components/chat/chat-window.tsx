@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { AIInputWithLoading } from "@/components/ui/ai-input-with-loading";
 import { MessageBubble } from "./message-bubble";
 
@@ -12,6 +12,12 @@ interface Message {
 export function ChatWindow() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [hasStarted, setHasStarted] = useState(false);
+    const bottomRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll to bottom when messages change
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
     const handleSubmit = async (value: string) => {
         if (!hasStarted) {
@@ -86,6 +92,7 @@ export function ChatWindow() {
                     {messages.map((msg, i) => (
                         <MessageBubble key={i} role={msg.role} content={msg.content} />
                     ))}
+                    <div ref={bottomRef} />
                 </div>
 
                 {/* Input bar pinned to bottom */}
