@@ -56,10 +56,6 @@ export function ChatWindow() {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, showOptions]);
 
-    // Automatically start the chat on mount to show options on first visit
-    useEffect(() => {
-        handleInitialLoad();
-    }, []);
 
     const callApi = async (value: string, currentHistory: Message[]) => {
         try {
@@ -97,17 +93,6 @@ export function ChatWindow() {
         }
     };
 
-    const handleInitialLoad = () => {
-        setHasStarted(true);
-        setMessages([
-            {
-                role: "assistant",
-                content: "Welcome to the Vacuum Pump Diagnostic Assistant.\nPlease select a parameter to evaluate or type your issue directly."
-            }
-        ]);
-        setShowOptions(true);
-        setActiveSubOption(null);
-    };
 
     const handleSubmit = async (value: string) => {
         if (!hasStarted) {
