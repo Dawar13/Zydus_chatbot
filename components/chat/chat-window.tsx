@@ -3,30 +3,60 @@
 import { useState, useRef, useEffect } from "react";
 import { AIInputWithLoading } from "@/components/ui/ai-input-with-loading";
 import { MessageBubble } from "./message-bubble";
+import { QuickOptions } from "./quick-options";
 
 interface Message {
     role: "user" | "assistant";
     content: string;
 }
 
+const PRIMARY_OPTIONS = [
+    "Current vacuum value achieved",
+    "Setpoint vacuum value",
+    "Power load",
+    "Oil level condition",
+    "Pump overheating",
+    "Not achieving vacuum setpoint",
+    "Pump not running",
+    "Increased power consumption"
+];
+
+const SUB_OPTIONS: Record<string, { prompt: string, options: string[], formatText: (val: string) => string }> = {
+    "Power load": {
+        prompt: "Please select current condition:",
+        options: ["Normal", "Increased", "Fluctuating", "Excessive"],
+        formatText: (val) => `Power load is ${val}`
+    },
+    "Oil level condition": {
+        prompt: "Please select current condition:",
+        options: ["Normal", "Low", "Contaminated"],
+        formatText: (val) => `Oil level condition is ${val}`
+    },
+    "Current vacuum value achieved": {
+        prompt: "Please select current condition:",
+        options: ["Normal", "Low", "Fluctuating"],
+        formatText: (val) => `Current vacuum value achieved is ${val}`
+    },
+    "Pump overheating": {
+        prompt: "Would you like to inspect mechanical or electrical causes?",
+        options: ["Mechanical", "Electrical", "Both"],
+        formatText: (val) => `Pump overheating due to ${val} causes`
+    }
+};
+
 export function ChatWindow() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [hasStarted, setHasStarted] = useState(false);
+    const [showOptions, setShowOptions] = useState(true);
+    const [activeSubOption, setActiveSubOption] = useState<string | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll to bottom when messages change
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    }, [messages, showOptions]);
 
-    const handleSubmit = async (value: string) => {
-        if (!hasStarted) {
-            setHasStarted(true);
-        }
-
-        const userMessage: Message = { role: "user", content: value };
-        setMessages((prev) => [...prev, userMessage]);
-
+    const callApi = async (value: string, currentHistory: Message[]) => {
         try {
             const response = await fetch("/api/chat", {
                 method: "POST",
@@ -35,7 +65,7 @@ export function ChatWindow() {
                 },
                 body: JSON.stringify({
                     message: value,
-                    history: messages,
+                    history: currentHistory,
                 }),
             });
 
@@ -62,8 +92,93 @@ export function ChatWindow() {
         }
     };
 
+    const handleInitialLoad = () => {
+        setHasStarted(true);
+        setMessages([
+            {
+                role: "assistant",
+                content: "Welcome to the Vacuum Pump Diagnostic Assistant.\nPlease select a parameter to evaluate or type your issue directly."
+            }
+        ]);
+        setShowOptions(true);
+        setActiveSubOption(null);
+    };
+
+    const handleSubmit = async (value: string) => {
+        if (!hasStarted) {
+            setHasStarted(true);
+        }
+
+        const lowerVal = value.trim().toLowerCase();
+
+        // Reset options if user types freely
+        setShowOptions(false);
+        setActiveSubOption(null);
+
+        const userMessage: Message = { role: "user", content: value };
+        const newMessages = [...messages, userMessage];
+        setMessages(newMessages);
+
+        if (lowerVal === "hi" || lowerVal === "hello" || messages.length === 0) {
+            setMessages((prev) => [
+                ...prev,
+                {
+                    role: "assistant",
+                    content: "Welcome to the Vacuum Pump Diagnostic Assistant.\nPlease select a parameter to evaluate or type your issue directly."
+                }
+            ]);
+            setShowOptions(true);
+            return; // Do NOT call API
+        }
+
+        await callApi(value, messages);
+    };
+
+    const handleOptionSelect = async (option: string) => {
+        if (activeSubOption === null) {
+            // Processing primary option
+            const userMsg: Message = { role: "user", content: option };
+            const subOptConfig = SUB_OPTIONS[option];
+
+            if (subOptConfig) {
+                // Show sub options
+                setMessages((prev) => [
+                    ...prev,
+                    userMsg,
+                    { role: "assistant", content: subOptConfig.prompt }
+                ]);
+                setActiveSubOption(option);
+            } else {
+                // No sub options, call API
+                setMessages((prev) => [...prev, userMsg]);
+                setShowOptions(false);
+                await callApi(option, messages);
+            }
+        } else {
+            // Processing sub option
+            const config = SUB_OPTIONS[activeSubOption];
+            const formattedText = config.formatText(option);
+
+            const userMsg: Message = { role: "user", content: formattedText };
+            setMessages((prev) => [...prev, userMsg]);
+            setShowOptions(false);
+            setActiveSubOption(null);
+            await callApi(formattedText, messages);
+        }
+    };
+
     // ── Stage 1: Hero ──────────────────────────────────────────────
     if (!hasStarted) {
+        // Automatically start the chat on mount if requirement "at initial load" is dominant
+        // but we'll keep the hero design available. If you want it to skip hero, call handleInitialLoad() in a useEffect.
+        // For now, let's keep the hero but add an explicit start or just rely on typing.
+        // Wait, "at initial load" usually means skipping Hero. Lets keep explicit so UI design survives, but we use handleInitialLoad for "first visit" logic
+        useEffect(() => {
+            // We can optionally trigger it here if truly bypassing hero.
+            // As per instructions, "On first visit... The assistant should respond with: Welcome..."
+            handleInitialLoad();
+        }, []);
+
         return (
             <div className="w-full h-[100dvh] flex flex-col items-center justify-center px-4 text-center">
                 <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-normal tracking-tight text-black leading-tight">
@@ -83,6 +198,8 @@ export function ChatWindow() {
         );
     }
 
+    const currentOptions = activeSubOption ? SUB_OPTIONS[activeSubOption].options : PRIMARY_OPTIONS;
+
     // ── Stage 2: Chat ──────────────────────────────────────────────
     return (
         <div className="w-full h-[100dvh] flex flex-col items-center justify-center py-3 sm:py-6">
@@ -90,8 +207,15 @@ export function ChatWindow() {
                 {/* Message list — grows to fill space, scrolls when full */}
                 <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 flex flex-col gap-4">
                     {messages.map((msg, i) => (
-                        <MessageBubble key={i} role={msg.role} content={msg.content} />
+                        <div key={i} className="flex flex-col gap-2">
+                            <MessageBubble role={msg.role} content={msg.content} />
+                        </div>
                     ))}
+                    {showOptions && (
+                        <div className="flex justify-start">
+                            <QuickOptions options={currentOptions} onSelect={handleOptionSelect} />
+                        </div>
+                    )}
                     <div ref={bottomRef} />
                 </div>
 
