@@ -15,6 +15,12 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Zydus Industrial Intelligence",
   description: "AI-powered vacuum pump monitoring assistant",
+  openGraph: {
+    title: "Zydus Industrial Intelligence",
+    description: "AI-powered vacuum pump monitoring assistant",
+    type: "website",
+    siteName: "Zydus Chatbot",
+  },
 };
 
 export default function RootLayout({
