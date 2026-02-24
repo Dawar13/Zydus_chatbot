@@ -59,7 +59,7 @@ export function AIInputWithLoading({
                 disabled={isLoading}
                 rows={1}
                 className={[
-                    "w-full resize-none bg-transparent px-4 py-4 pr-14 text-sm text-black",
+                    "w-full resize-none bg-transparent px-4 py-4 pr-14 text-sm font-sans text-black",
                     "placeholder:text-black/40 outline-none rounded-2xl",
                     "disabled:opacity-60 disabled:cursor-not-allowed",
                     "transition-all duration-200",

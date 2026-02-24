@@ -62,7 +62,7 @@ export function ChatWindow() {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center">
                 <h1 className="text-5xl md:text-6xl font-normal tracking-tight text-black leading-tight">
-                    Zydus Industrial Intelligence
+                    <span className="text-purple-700">Zydus</span> Industrial <span className="text-green-900">Intelligence</span>
                 </h1>
                 <p className="mt-4 text-lg text-black/60">
                     AI-powered vacuum pump monitoring assistant
